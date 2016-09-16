@@ -1,0 +1,4 @@
+# Folder to be ignored
+**/__pycache__/*
+**/.idea/*
+**/.ipynb_checkpoints/*
