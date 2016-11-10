@@ -1,5 +1,6 @@
 import pymysql
 from pandas import DataFrame
+import unicodedata
 
 class DatabaseConnector:
     def __init__(self, server_address, username, password, target_database):
@@ -50,12 +51,16 @@ def build_dataframe(dataset):
     label_sequence = []
 
     for text, label in dataset:
-        text_sequence.append(text)
+        text_sequence.append(normalize_text(text))
         label_sequence.append(label)
 
     dataframe = DataFrame({'texts': text_sequence, 'labels': label_sequence})
     return dataframe
 
+def normalize_text(text):
+    normalized_text = text.lower()
+    normalized_text = ''.join((c for c in unicodedata.normalize('NFD', normalized_text) if unicodedata.category(c) != 'Mn'))
+    return normalized_text
 
 
 if __name__ == "__main__":
