@@ -59,7 +59,7 @@ def build_dataframe(dataset):
 
 def normalize_text(text):
     normalized_text = text.lower()
-    normalized_text = ''.join((c for c in unicodedata.normalize('NFD', normalized_text) if unicodedata.category(c) != 'Mn'))
+    # normalized_text = ''.join((c for c in unicodedata.normalize('NFD', normalized_text) if unicodedata.category(c) != 'Mn'))
     return normalized_text
 
 
