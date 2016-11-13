@@ -16,15 +16,16 @@ import nltk
 from nltk.stem import RSLPStemmer, SnowballStemmer
 
 class MLWrapper:
-    def __init__(self, classifier):
-        self.pipeline = Pipeline([
-            # ('stemmer', Stemmer()),
-            ('vectorizer', CountVectorizer()),
-            # ('tfidf_transformer', TfidfTransformer()),
-            ('classifier', classifier)
-        ])
+    def __init__(self, pipeline):
+        self.pipeline = pipeline
 
-    def train(self, data):
+    def split_data(self, input_data, ratio):
+        labels = input_data['labels'].unique().tolist()
+        full_data = {label: input_data[input_data['labels'] == label] for label in labels}
+        train_data = {label: input_data[input_data['labels'] == label] for label in labels}
+
+
+    def train(self, data, n_classes):
         """
 
         :param data:  dataframe with columns text, label
@@ -33,26 +34,23 @@ class MLWrapper:
         k_fold = KFold(n=len(data), n_folds=6)
         scores = []
         accuracies = []
-        confusion = numpy.array([[0, 0, 0], [0, 0, 0], [0, 0, 0]])
+        confusion = []#numpy.zeros([n_classes, n_classes])
         for train_indices, test_indices in k_fold:
-            stemmer = Stemmer()
             train_text = data.iloc[train_indices]['texts'].values
-            train_text = stemmer.transform(train_text)
-
-            vectorizer = CountVectorizer()
-            feature_space = vectorizer.fit_transform(train_text)
-            # print(feature_space.shape)
-
             train_y = data.iloc[train_indices]['labels'].values
 
             test_text = data.iloc[test_indices]['texts'].values
-            test_text = stemmer.transform(test_text)
             test_y = data.iloc[test_indices]['labels'].values
 
             self.pipeline.fit(train_text, train_y)
             predictions = self.pipeline.predict(test_text)
 
-            confusion += confusion_matrix(test_y, predictions, labels=["PO", "NG", "NE"])
+            # confusion += confusion_matrix(test_y, predictions)
+            if confusion == []:
+                confusion = confusion_matrix(test_y, predictions)
+            else:
+                confusion += confusion_matrix(test_y, predictions)
+
             score = f1_score(test_y, predictions)
             accuracy = accuracy_score(test_y, predictions, normalize=True)
 
