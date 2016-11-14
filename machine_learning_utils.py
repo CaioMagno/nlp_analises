@@ -1,19 +1,19 @@
+from sklearn.pipeline import Pipeline
+from sklearn.naive_bayes import MultinomialNB
 from sklearn.feature_extraction.text import CountVectorizer
 from sklearn.feature_extraction.text import TfidfTransformer, TfidfVectorizer
-from sklearn.pipeline import Pipeline
-from sklearn.cross_validation import KFold
-from sklearn.metrics import confusion_matrix, f1_score, accuracy_score
-from sklearn.base import TransformerMixin
+
 from sklearn import svm
-
-import numpy
 from pickle import load
-
+from database_utils import normalize_text
+from sklearn.cross_validation import KFold
+from nltk.stem import RSLPStemmer, SnowballStemmer
+from sklearn.base import TransformerMixin, BaseEstimator
 from database_utils import DatabaseConnector, build_dataframe
-from sklearn.naive_bayes import MultinomialNB
+from sklearn.metrics import confusion_matrix, f1_score, accuracy_score
 
 import nltk
-from nltk.stem import RSLPStemmer, SnowballStemmer
+import numpy as np
 
 class MLWrapper:
     def __init__(self, pipeline):
@@ -63,6 +63,26 @@ class MLWrapper:
         print('Confusion matrix:')
         print(confusion)
 
+class AdjectiveVectorizer(BaseEstimator, TransformerMixin):
+    def __init__(self, adj_list):
+        self. adj_list = adj_list
+
+    def fit(self, X, y=None, **fit_params):
+        return np.matrix([self.adjective_vectorizer(s, self.adj_list) for s in X])
+
+    def fit_transform(self, X, y=None, **fit_params):
+        return np.matrix([self.adjective_vectorizer(s, self.adj_list) for s in X])
+
+    def transform(self, X, **fit_params):
+        return np.matrix([self.adjective_vectorizer(s, self.adj_list) for s in X])
+
+    def adjective_vectorizer(self, sentence, base_adjectives, form="vector"):
+        normalized_sentence = normalize_text(sentence)
+        v = {adjective: normalized_sentence.split().count(adjective) for adjective in base_adjectives}
+        if form == "dict":
+            return v
+        if form == "vector":
+            return list(v.values())
 class Stemmer():
     def __init__(self):
         f = open('bigram_tagger.pkl','rb')
@@ -104,12 +124,40 @@ class Tagger():
     def transform(self, X, **fit_params):
         pass
 
-if __name__ == "__main__":
-    print("Recuperando os textos")
-    db_connector = DatabaseConnector('localhost', 'root', '12345', 'CORPUS_VIES')
-    retrieved_data = build_dataframe(db_connector.getDataTextAndLabel())
 
-    print("Treinando o modelo")
-    ml_wrapper = MLWrapper(svm.SVC(C=316))
-    # ml_wrapper = MLWrapper(MultinomialNB())
-    ml_wrapper.train(retrieved_data)
+def get_data_from_db(sentiment = None):
+    db_connector = DatabaseConnector('localhost', 'root', '12345', 'CORPUS_VIES')
+    if sentiment != None:
+        retrieved_data = db_connector.getDataBySentiment(sentiment)
+    else:
+        retrieved_data = db_connector.getDataTextAndLabel()
+
+    return retrieved_data
+
+def load_tagger():
+    f = open('bigram_tagger.pkl', 'rb')
+    tagger = load(f)
+    f.close()
+    return tagger
+
+def get_all_adjectives():
+    corpus = get_data_from_db()
+    corpus = corpus['texts'].tolist()
+    tagger = load_tagger()
+
+    adjectives = set()
+    for text in corpus:
+        adjectives_found = set([word for (word, tag) in tagger.tag(text.split()) if tag[:3] == 'ADJ'])
+        adjectives = adjectives.union(adjectives_found)
+
+    print("Numero de adjetivos encontrados: ", len(adjectives))
+    return adjectives
+# if __name__ == "__main__":
+    # print("Recuperando os textos")
+    # db_connector = DatabaseConnector('localhost', 'root', '12345', 'CORPUS_VIES')
+    # retrieved_data = build_dataframe(db_connector.getDataTextAndLabel())
+    #
+    # print("Treinando o modelo")
+    # ml_wrapper = MLWrapper(svm.SVC(C=316))
+    # # ml_wrapper = MLWrapper(MultinomialNB())
+    # ml_wrapper.train(retrieved_data)

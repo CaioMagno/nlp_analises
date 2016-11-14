@@ -17,7 +17,7 @@ class DatabaseConnector:
         db = pymysql.connect(self.server_address, self.username, self.password, self.target_database)
         cursor = db.cursor()
 
-        sql_statement = 'SELECT PARAGRAPH FROM PARAGRAPHS WHERE POLARITY = "%s"' % label
+        sql_statement = 'SELECT PARAGRAPH, POLARITY FROM PARAGRAPHS WHERE POLARITY = "%s"' % label        
         print(sql_statement)
 
         cursor.execute(sql_statement)
@@ -25,7 +25,8 @@ class DatabaseConnector:
         data = cursor.fetchall()
         db.close()
 
-        return data
+        data = list(data)
+        return build_dataframe(data)
 
     def getDataTextAndLabel(self):
         db = pymysql.connect(self.server_address, self.username, self.password, self.target_database)
@@ -39,7 +40,7 @@ class DatabaseConnector:
         data = cursor.fetchall()
         db.close()
 
-        return data
+        return build_dataframe(data)
 
 
 def build_dataframe(dataset):
