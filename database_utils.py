@@ -21,10 +21,10 @@ class DatabaseConnector:
         cursor = db.cursor()
 
         sql_statement = 'SELECT PARAGRAPH, POLARITY FROM PARAGRAPHS WHERE POLARITY = "%s"' % label        
-        print(sql_statement)
+        # print(sql_statement)
 
         cursor.execute(sql_statement)
-        print(cursor.rowcount, ' Paragraphs encountered')
+        # print(cursor.rowcount, ' Paragraphs encountered')
         data = cursor.fetchall()
         db.close()
 
@@ -36,10 +36,10 @@ class DatabaseConnector:
         cursor = db.cursor()
 
         sql_statement = 'SELECT PARAGRAPH, POLARITY FROM PARAGRAPHS WHERE POLARITY IS NOT NULL AND trim(POLARITY) <> ""'
-        print(sql_statement)
+        # print(sql_statement)
 
         cursor.execute(sql_statement)
-        print(cursor.rowcount, ' Paragraphs encountered')
+        # print(cursor.rowcount, ' Paragraphs encountered')
         data = cursor.fetchall()
         db.close()
 
