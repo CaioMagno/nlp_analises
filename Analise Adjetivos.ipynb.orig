@@ -30,7 +30,11 @@
   },
   {
    "cell_type": "code",
-   "execution_count": 13,
+<<<<<<< HEAD
+   "execution_count": 2,
+=======
+   "execution_count": 3,
+>>>>>>> 93bf0f70e4c1652e389bff3aeb47ec71ab8aa4bf
    "metadata": {
     "collapsed": false
    },
@@ -67,7 +71,11 @@
   },
   {
    "cell_type": "code",
+<<<<<<< HEAD
+   "execution_count": 6,
+=======
    "execution_count": 29,
+>>>>>>> 93bf0f70e4c1652e389bff3aeb47ec71ab8aa4bf
    "metadata": {
     "collapsed": false
    },
@@ -88,8 +96,9 @@
     "    f.close()\n",
     "    return tagger\n",
     "\n",
-    "def get_all_adjectives(n = -1):\n",
-    "    corpus = get_data_from_db()\n",
+    "def get_all_adjectives(data, n = -1):\n",
+    "#     corpus = get_data_from_db()\n",
+    "    corpus = data\n",
     "    corpus = corpus['texts'].tolist()\n",
     "    tagger = load_tagger()\n",
     "        \n",
@@ -2599,7 +2608,7 @@
   },
   {
    "cell_type": "code",
-   "execution_count": 13,
+   "execution_count": 8,
    "metadata": {
     "collapsed": false
    },
@@ -2608,17 +2617,12 @@
      "name": "stdout",
      "output_type": "stream",
      "text": [
-      "SELECT PARAGRAPH, POLARITY FROM PARAGRAPHS WHERE POLARITY IS NOT NULL AND trim(POLARITY) <> \"\"\n",
-      "1042  Paragraphs encountered\n",
-      "Dados de treino:  561\n",
-      "Dados de test:  140\n",
-      "SELECT PARAGRAPH, POLARITY FROM PARAGRAPHS WHERE POLARITY IS NOT NULL AND trim(POLARITY) <> \"\"\n",
-      "1042  Paragraphs encountered\n",
-      "Numero de adjetivos encontrados:  638\n",
+      "Dados de treino:  631\n",
+      "Dados de test:  70\n",
       "Resultados: \n",
-      "Acuracia:  0.621428571429\n",
-      "Matriz de confusão:  [[56 22]\n",
-      " [31 31]]\n"
+      "Acuracia:  0.7\n",
+      "Matriz de confusão:  [[33  6]\n",
+      " [15 16]]\n"
      ]
     }
    ],
@@ -2628,12 +2632,12 @@
     "all_data = get_data_from_db()\n",
     "all_data = all_data[(all_data[\"labels\"] == \"PO\") | (all_data[\"labels\"] == \"NG\")]\n",
     "\n",
-    "train_data, test_data = split_train_test(all_data, ratio=0.8, split_by_class=True)\n",
+    "train_data, test_data = split_train_test(all_data, ratio=0.9, split_by_class=True)\n",
     "\n",
     "print(\"Dados de treino: \", train_data.shape[0])\n",
     "print(\"Dados de test: \", test_data.shape[0])\n",
     "\n",
-    "adj_list = get_all_adjectives()\n",
+    "adj_list = get_all_adjectives(train_data)\n",
     "\n",
     "p = Pipeline([(\"adj_vec\", machine_learning_utils.AdjectiveVectorizer(adj_list)), (\"classifier\", MultinomialNB())])\n",
     "p.fit(train_data[\"texts\"], train_data[\"labels\"])\n",
@@ -2649,7 +2653,11 @@
   },
   {
    "cell_type": "code",
+<<<<<<< HEAD
+   "execution_count": 9,
+=======
    "execution_count": 5,
+>>>>>>> 93bf0f70e4c1652e389bff3aeb47ec71ab8aa4bf
    "metadata": {
     "collapsed": false
    },
@@ -2658,14 +2666,12 @@
      "name": "stdout",
      "output_type": "stream",
      "text": [
-      "SELECT PARAGRAPH, POLARITY FROM PARAGRAPHS WHERE POLARITY IS NOT NULL AND trim(POLARITY) <> \"\"\n",
       "Dados de treino:  631\n",
       "Dados de test:  70\n",
-      "SELECT PARAGRAPH, POLARITY FROM PARAGRAPHS WHERE POLARITY IS NOT NULL AND trim(POLARITY) <> \"\"\n",
       "Resultados: \n",
-      "Acuracia:  0.814285714286\n",
-      "Matriz de confusão:  [[32  7]\n",
-      " [ 6 25]]\n"
+      "Acuracia:  0.785714285714\n",
+      "Matriz de confusão:  [[31  8]\n",
+      " [ 7 24]]\n"
      ]
     }
    ],
@@ -2680,7 +2686,7 @@
     "print(\"Dados de treino: \", train_data.shape[0])\n",
     "print(\"Dados de test: \", test_data.shape[0])\n",
     "\n",
-    "adj_list = get_all_adjectives()\n",
+    "adj_list = get_all_adjectives(train_data)\n",
     "\n",
     "ftu = FeatureUnion([(\"unigram\", CountVectorizer()), (\"adj_vec\", machine_learning_utils.AdjectiveVectorizer(adj_list))])\n",
     "p = Pipeline([(\"features\", ftu), (\"classifier\", MultinomialNB())])\n",
@@ -2697,7 +2703,11 @@
   },
   {
    "cell_type": "code",
+<<<<<<< HEAD
+   "execution_count": 11,
+=======
    "execution_count": 44,
+>>>>>>> 93bf0f70e4c1652e389bff3aeb47ec71ab8aa4bf
    "metadata": {
     "collapsed": false,
     "scrolled": false
@@ -2707,14 +2717,31 @@
      "name": "stdout",
      "output_type": "stream",
      "text": [
-      "Iteração  1 : Acurácia  71.2871287129 %\n",
-      "Iteração  2 : Acurácia  79.2079207921 %\n",
-      "Iteração  3 : Acurácia  78.0 %\n",
-      "Iteração  4 : Acurácia  74.0 %\n",
-      "Iteração  5 : Acurácia  75.0 %\n",
-      "Iteração  6 : Acurácia  74.0 %\n",
-      "Iteração  7 : Acurácia  71.7171717172 %\n",
-      "Acurácia média:  0.747446030317\n"
+<<<<<<< HEAD
+      "Iteração  1 : Acurácia  77.4647887324 %\n",
+      "Iteração  2 : Acurácia  81.4285714286 %\n",
+      "Iteração  3 : Acurácia  84.2857142857 %\n",
+      "Iteração  4 : Acurácia  77.1428571429 %\n",
+      "Iteração  5 : Acurácia  68.5714285714 %\n",
+      "Iteração  6 : Acurácia  68.5714285714 %\n",
+      "Iteração  7 : Acurácia  71.4285714286 %\n",
+      "Iteração  8 : Acurácia  72.8571428571 %\n",
+      "Iteração  9 : Acurácia  72.8571428571 %\n",
+      "Iteração  10 : Acurácia  67.1428571429 %\n",
+      "Acurácia média:  0.741750503018\n"
+=======
+      "Iteração  1 : Acurácia  66.1971830986 %\n",
+      "Iteração  2 : Acurácia  74.2857142857 %\n",
+      "Iteração  3 : Acurácia  71.4285714286 %\n",
+      "Iteração  4 : Acurácia  72.8571428571 %\n",
+      "Iteração  5 : Acurácia  80.0 %\n",
+      "Iteração  6 : Acurácia  70.0 %\n",
+      "Iteração  7 : Acurácia  74.2857142857 %\n",
+      "Iteração  8 : Acurácia  71.4285714286 %\n",
+      "Iteração  9 : Acurácia  77.1428571429 %\n",
+      "Iteração  10 : Acurácia  68.5714285714 %\n",
+      "Acurácia média:  0.726197183099\n"
+>>>>>>> 93bf0f70e4c1652e389bff3aeb47ec71ab8aa4bf
      ]
     }
    ],
@@ -2738,7 +2765,7 @@
     "\n",
     "all_data = get_data_from_db()\n",
     "all_data = all_data[(all_data[\"labels\"] == \"PO\") | (all_data[\"labels\"] == \"NG\")]\n",
-    "adj_list = get_all_adjectives()\n",
+    "adj_list = get_all_adjectives(all_data)\n",
     "\n",
     "sKFold = StratifiedKFold(all_data['labels'], n_folds=10, shuffle=True)\n",
     "\n",
@@ -2812,12 +2839,28 @@
   },
   {
    "cell_type": "code",
+<<<<<<< HEAD
+   "execution_count": 12,
+=======
    "execution_count": 2,
+>>>>>>> 93bf0f70e4c1652e389bff3aeb47ec71ab8aa4bf
    "metadata": {
     "collapsed": false
    },
    "outputs": [
     {
+<<<<<<< HEAD
+     "name": "stdout",
+     "output_type": "stream",
+     "text": [
+      "Dados de treino:  938\n",
+      "Dados de test:  104\n",
+      "Resultados: \n",
+      "Acuracia:  0.634615384615\n",
+      "Matriz de confusão:  [[22 11  5]\n",
+      " [ 1 20  0]\n",
+      " [10 11 24]]\n"
+=======
      "ename": "NameError",
      "evalue": "name 'get_data_from_db' is not defined",
      "output_type": "error",
@@ -2826,6 +2869,7 @@
       "\u001b[0;31mNameError\u001b[0m                                 Traceback (most recent call last)",
       "\u001b[0;32m<ipython-input-2-f3a2ad0f893d>\u001b[0m in \u001b[0;36m<module>\u001b[0;34m()\u001b[0m\n\u001b[1;32m      1\u001b[0m \u001b[0;31m# Usando unigrams + adj com as 3 classes\u001b[0m\u001b[0;34m\u001b[0m\u001b[0;34m\u001b[0m\u001b[0m\n\u001b[1;32m      2\u001b[0m \u001b[0;34m\u001b[0m\u001b[0m\n\u001b[0;32m----> 3\u001b[0;31m \u001b[0mall_data\u001b[0m \u001b[0;34m=\u001b[0m \u001b[0mget_data_from_db\u001b[0m\u001b[0;34m(\u001b[0m\u001b[0;34m)\u001b[0m\u001b[0;34m\u001b[0m\u001b[0m\n\u001b[0m\u001b[1;32m      4\u001b[0m \u001b[0mtrain_data\u001b[0m \u001b[0;34m=\u001b[0m \u001b[0mall_data\u001b[0m\u001b[0;34m[\u001b[0m\u001b[0;34m:\u001b[0m\u001b[0mround\u001b[0m\u001b[0;34m(\u001b[0m\u001b[0;36m0.9\u001b[0m\u001b[0;34m*\u001b[0m\u001b[0mall_data\u001b[0m\u001b[0;34m.\u001b[0m\u001b[0mshape\u001b[0m\u001b[0;34m[\u001b[0m\u001b[0;36m0\u001b[0m\u001b[0;34m]\u001b[0m\u001b[0;34m)\u001b[0m\u001b[0;34m]\u001b[0m\u001b[0;34m\u001b[0m\u001b[0m\n\u001b[1;32m      5\u001b[0m \u001b[0mtest_data\u001b[0m \u001b[0;34m=\u001b[0m \u001b[0mall_data\u001b[0m\u001b[0;34m[\u001b[0m\u001b[0mround\u001b[0m\u001b[0;34m(\u001b[0m\u001b[0;36m0.9\u001b[0m\u001b[0;34m*\u001b[0m\u001b[0mall_data\u001b[0m\u001b[0;34m.\u001b[0m\u001b[0mshape\u001b[0m\u001b[0;34m[\u001b[0m\u001b[0;36m0\u001b[0m\u001b[0;34m]\u001b[0m\u001b[0;34m)\u001b[0m\u001b[0;34m:\u001b[0m\u001b[0;34m]\u001b[0m\u001b[0;34m\u001b[0m\u001b[0m\n",
       "\u001b[0;31mNameError\u001b[0m: name 'get_data_from_db' is not defined"
+>>>>>>> 93bf0f70e4c1652e389bff3aeb47ec71ab8aa4bf
      ]
     }
    ],
@@ -2839,7 +2883,7 @@
     "print(\"Dados de treino: \", train_data.shape[0])\n",
     "print(\"Dados de test: \", test_data.shape[0])\n",
     "\n",
-    "adj_list = get_all_adjectives(100)\n",
+    "adj_list = get_all_adjectives(all_data)\n",
     "\n",
     "ftu = FeatureUnion([(\"unigram\", CountVectorizer()), (\"adj_vec\", machine_learning_utils.AdjectiveVectorizer(adj_list))])\n",
     "p = Pipeline([(\"features\", ftu), (\"classifier\", MultinomialNB())])\n",
