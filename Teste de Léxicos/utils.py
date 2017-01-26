@@ -1,9 +1,12 @@
 import numpy as np
+from pandas import DataFrame
+
+from sklearn.naive_bayes import MultinomialNB
 
 from sklearn.pipeline import Pipeline, FeatureUnion
 from sklearn.metrics import confusion_matrix, f1_score, accuracy_score
 from database_utils import DatabaseConnector, build_dataframe, normalize_text
-from sklearn.model_selection import StratifiedKFold
+from sklearn.cross_validation import StratifiedKFold
 
 ##########################################################################################################
 ######                   FUNÇÕES DE OBTENÇÃO DE DADOS                                             ########
@@ -43,16 +46,19 @@ def load_claudia_freitas_lexicon():
 ######                   FUNÇÕES DE APRENDIZAGEM DE MÁQUINA                                       ########
 ##########################################################################################################
 
-def run_classifier(train, test, featurizer, classifier):
+def train_classifier(train, test, featurizer, classifier):
     p = Pipeline([("features", featurizer), ("classifier", classifier)])
     p.fit(train["texts"], train["labels"])
     predictions = p.predict(test["texts"])
+    classifier = p.get_params()["classifier"]
 
     accuracy = accuracy_score(test["labels"], predictions, normalize=True)
-    return accuracy
+    return classifier, accuracy
 
-def run_cross_validation(all_data, n_folds, shuffle, features, classifier):
-    sKFold = StratifiedKFold(n_splits= n_folds, shuffle= shuffle, random_state= True)
+def run_cross_validation(all_data, features, classifier, n_folds=10, shuffle=True):
+    sKFold = StratifiedKFold()
+
+    classifier_models = []
 
     print("Cross Validation:")
     accuracy_average = np.array([])
@@ -61,9 +67,31 @@ def run_cross_validation(all_data, n_folds, shuffle, features, classifier):
         train_data = all_data.iloc[train]
         test_data = all_data.iloc[test]
 
-        accuracy = run_classifier(train_data, test_data, features, classifier)
+        classifier, accuracy = train_classifier(train_data, test_data, features, classifier)
+        classifier_models.append(classifier)
+
         accuracy_average = np.append(accuracy_average, accuracy)
         print("Fold ", index, " - Acuracia: ", accuracy)
 
     print("\nAccuracia media: ", accuracy_average.mean())
     print("Desvio padrão: ", accuracy_average.std())
+
+    # Picking the best model
+    best_classifier = classifier_models.index(accuracy_average.argmax(axis=0))
+    return best_classifier, sKFold
+
+def export_probabilities(classifier, all_data, sKFold):
+    labels = []
+    predictions = []
+
+    for index, (train, test) in enumerate(sKFold.split(all_data["texts"], all_data["labels"])):
+        test_data = all_data.iloc[test]
+        classifier = MultinomialNB()
+        predictions = np.append(predictions, classifier.predict_proba(test_data["texts"]))
+        labels = test_data["labels"]
+
+    classes = classifier.classes_
+    print(classes)
+    performance_report = DataFrame({'labels': labels, classes[0]:predictions[:,0], classes[1]:predictions[:,1]})
+    performance_report.to_excel("report")
+    print("Arquivo exportado")
