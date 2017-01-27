@@ -1,8 +1,4 @@
 import numpy as np
-import pandas as pd
-from pandas import DataFrame
-
-from sklearn.naive_bayes import MultinomialNB
 from sklearn.feature_extraction.text import CountVectorizer
 
 from sklearn.pipeline import Pipeline, FeatureUnion
@@ -51,18 +47,16 @@ def load_claudia_freitas_lexicon():
 ######                   FUNÇÕES DE APRENDIZAGEM DE MÁQUINA                                       ########
 ##########################################################################################################
 
-def train_classifier(train, test, featurizer, classifier):
-    pipeline = Pipeline([("features", featurizer), ("classifier", classifier)])
-    pipeline.fit(train["texts"], train["labels"])
-    predictions = pipeline.predict(test["texts"])
+def run_classifier(train, test, featurizer, classifier):
+    p = Pipeline([("features", featurizer), ("classifier", classifier)])
+    p.fit(train["texts"], train["labels"])
+    predictions = p.predict(test["texts"])
 
     accuracy = accuracy_score(test["labels"], predictions, normalize=True)
-    return pipeline, accuracy
+    return accuracy
 
-def run_cross_validation(all_data, features, classifier, n_folds=10, shuffle=True):
+def run_cross_validation(all_data, n_folds, shuffle, features, classifier):
     sKFold = StratifiedKFold(n_splits= n_folds, shuffle= shuffle, random_state= True)
-
-    classifier_models = []
 
     print("Cross Validation:")
     accuracy_average = np.array([])
@@ -71,36 +65,34 @@ def run_cross_validation(all_data, features, classifier, n_folds=10, shuffle=Tru
         train_data = all_data.iloc[train]
         test_data = all_data.iloc[test]
 
-        pipeline, accuracy = train_classifier(train_data, test_data, features, classifier)
-        classifier_models.append(pipeline)
-
+        accuracy = run_classifier(train_data, test_data, features, classifier)
         accuracy_average = np.append(accuracy_average, accuracy)
         print("Fold ", index, " - Acuracia: ", accuracy)
 
     print("\nAccuracia media: ", accuracy_average.mean())
     print("Desvio padrão: ", accuracy_average.std())
 
-    # Picking the best model
-    best_classifier = classifier_models[accuracy_average.argmax(axis=0)]
-    return best_classifier, sKFold
+def run_cross_validation2(X, Y, n_folds, shuffle, features, classifier):
+    sKFold = StratifiedKFold(n_splits= n_folds, shuffle= shuffle, random_state= True)
 
-def export_probabilities(classifier, all_data, sKFold):
-    labels = all_data["labels"]
-    predictions = classifier.predict_proba(all_data["texts"])
+    print("Cross Validation:")
+    accuracy_average = np.array([])
+    for index, (train, test) in enumerate(sKFold.split(X, Y)):
+        # Treinando um modelo Naive Bayes
+        train_data_X = X[train]
+        train_data_Y = Y[train]
+        train_data = {'texts': train_data_X, 'labels': train_data_Y}
 
-    classes = classifier.classes_
-    print(classes)
+        test_data_X = X.iloc[test]
+        test_data_Y = Y.iloc[test]
+        test_data = {'texts': test_data_X, 'labels': test_data_Y}
 
-    df_content ={'labels': labels}
-    for index, classe in enumerate(classes):
-        df_content[classe] = predictions[:,index]
+        accuracy = run_classifier(train_data, test_data, features, classifier)
+        accuracy_average = np.append(accuracy_average, accuracy)
+        print("Fold ", index, " - Acuracia: ", accuracy)
 
-    performance_report = DataFrame(df_content)
-
-    writer = pd.ExcelWriter("report.xls", engine = "xlsxwriter")
-    performance_report.to_excel(writer, "Sheet1")
-    writer.save()
-    print("Arquivo exportado")
+    print("\nAccuracia media: ", accuracy_average.mean())
+    print("Desvio padrão: ", accuracy_average.std())
 
 if __name__ == '__main__':
     all_data = get_data_from_db()
@@ -113,5 +105,5 @@ if __name__ == '__main__':
     bag_of_features = features.fit_transform(all_data["texts"].toarray())
     pca = PCA(n_components=200)
     bag_of_features_reduced = pca.fit_transform(bag_of_features.toarray())
-    run_cross_validation(bag_of_features_reduced, all_data['labels'], 10, True, features,
+    run_cross_validation2(bag_of_features_reduced, all_data['labels'], 10, True, features,
                           SVC(C=316, kernel='sigmoid', coef0=0.5))

@@ -1,9 +1,12 @@
 import numpy as np
+<<<<<<< HEAD
 import pandas as pd
 from pandas import DataFrame
 
 from sklearn.naive_bayes import MultinomialNB
+=======
 from sklearn.feature_extraction.text import CountVectorizer
+>>>>>>> 5747326698ac7360ee2f4760fa45fe428376b188
 
 from sklearn.pipeline import Pipeline, FeatureUnion
 from sklearn.metrics import confusion_matrix, f1_score, accuracy_score
@@ -80,6 +83,7 @@ def run_cross_validation(all_data, features, classifier, n_folds=10, shuffle=Tru
     print("\nAccuracia media: ", accuracy_average.mean())
     print("Desvio padrão: ", accuracy_average.std())
 
+<<<<<<< HEAD
     # Picking the best model
     best_classifier = classifier_models[accuracy_average.argmax(axis=0)]
     return best_classifier, sKFold
@@ -101,6 +105,28 @@ def export_probabilities(classifier, all_data, sKFold):
     performance_report.to_excel(writer, "Sheet1")
     writer.save()
     print("Arquivo exportado")
+=======
+def run_cross_validation2(X, Y, n_folds, shuffle, features, classifier):
+    sKFold = StratifiedKFold(n_splits= n_folds, shuffle= shuffle, random_state= True)
+
+    print("Cross Validation:")
+    accuracy_average = np.array([])
+    for index, (train, test) in enumerate(sKFold.split(X, Y)):
+        # Treinando um modelo Naive Bayes
+        train_data_X = X[train]
+        train_data_Y = Y[train]
+        train_data = {'texts': train_data_X, 'labels': train_data_Y}
+
+        test_data_X = X.iloc[test]
+        test_data_Y = Y.iloc[test]
+        test_data = {'texts': test_data_X, 'labels': test_data_Y}
+
+        accuracy = run_classifier(train_data, test_data, features, classifier)
+        accuracy_average = np.append(accuracy_average, accuracy)
+        print("Fold ", index, " - Acuracia: ", accuracy)
+
+    print("\nAccuracia media: ", accuracy_average.mean())
+    print("Desvio padrão: ", accuracy_average.std())
 
 if __name__ == '__main__':
     all_data = get_data_from_db()
@@ -113,5 +139,6 @@ if __name__ == '__main__':
     bag_of_features = features.fit_transform(all_data["texts"].toarray())
     pca = PCA(n_components=200)
     bag_of_features_reduced = pca.fit_transform(bag_of_features.toarray())
-    run_cross_validation(bag_of_features_reduced, all_data['labels'], 10, True, features,
+    run_cross_validation2(bag_of_features_reduced, all_data['labels'], 10, True, features,
                           SVC(C=316, kernel='sigmoid', coef0=0.5))
+>>>>>>> 5747326698ac7360ee2f4760fa45fe428376b188
