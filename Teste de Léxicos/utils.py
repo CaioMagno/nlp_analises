@@ -1,5 +1,7 @@
 import numpy as np
 import pandas as pd
+import re
+
 from pickle import load
 from pandas import DataFrame
 
@@ -64,6 +66,7 @@ def get_LIWC_lexicon():
 ######                   FUNÇÕES DE PRE PROCESSAMENTO                                             ########
 ##########################################################################################################
 
+
 class Stemmer(BaseEstimator, TransformerMixin):
     def __init__(self):
         f = open('bigram_tagger.pkl','rb')
@@ -112,6 +115,7 @@ class Stemmer(BaseEstimator, TransformerMixin):
 
         return stemmed_paragraphs
 
+
 class Tagger():
     def __init__(self, filename):
         f = open(filename, 'rb')
@@ -123,6 +127,15 @@ class Tagger():
 
     def transform(self, X, **fit_params):
         pass
+
+
+# O FIT_TRANSFORM DEVE RETORNAR UM DATAFRAME
+class NumRemover(BaseEstimator, TransformerMixin):
+    def fit_transform(self, X, y=None, **fit_params):
+        filtered_texts = []
+        for paragraph in X:
+            filtered_texts.append(re.sub('\d', '', paragraph))
+        return filtered_texts
 
 
 ##########################################################################################################
