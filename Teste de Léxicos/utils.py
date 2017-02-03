@@ -1,5 +1,6 @@
 import numpy as np
 import pandas as pd
+from pickle import load
 from pandas import DataFrame
 
 from sklearn.naive_bayes import MultinomialNB
@@ -7,6 +8,8 @@ from sklearn.feature_extraction.text import CountVectorizer
 
 from sklearn.pipeline import Pipeline, FeatureUnion
 from sklearn.metrics import confusion_matrix, f1_score, accuracy_score
+from nltk.stem import RSLPStemmer, SnowballStemmer
+from sklearn.base import TransformerMixin, BaseEstimator
 from database_utils import DatabaseConnector, build_dataframe, normalize_text
 from sklearn.model_selection import StratifiedKFold
 
@@ -44,7 +47,82 @@ def load_claudia_freitas_lexicon():
     adj_pos = extract_words('Recursos/Claudia Freitas/adj_pos')
     adj_neg = extract_words('Recursos/Claudia Freitas/adj_neg')
 
-    return subs_pos, subs_neg, verbs_pos, verbs_neg, adj_pos, adj_neg
+    return list(set(subs_pos + subs_neg + verbs_pos + verbs_neg + adj_pos + adj_neg))
+
+# Carregar léxico LIWC
+# OBS: PALAVRAS STEMMIZADAS!
+def get_LIWC_lexicon():
+    def clean_words(word_list):
+        words = [word.strip("\n") for word in word_list]
+        words = [word.strip("*") for word in words]
+        return words
+    lex = clean_words(open("Recursos/LIWC/positive_lexicon.txt").readlines())
+    lex = lex + clean_words(open("Recursos/LIWC/negative_lexicon.txt").readlines())
+    return list(set(lex))
+
+##########################################################################################################
+######                   FUNÇÕES DE PRE PROCESSAMENTO                                             ########
+##########################################################################################################
+
+class Stemmer(BaseEstimator, TransformerMixin):
+    def __init__(self):
+        f = open('bigram_tagger.pkl','rb')
+        self.tagger = load(f)
+        f.close()
+        pass
+
+    def fit(self, X, y=None, **fit_params):
+        return self
+
+    def fit_transform(self, X, y=None, **fit_params):
+        stemmer = RSLPStemmer()
+
+        listParagraphs = X.tolist()
+        stemmed_paragraphs = []
+
+        for paragraph in listParagraphs:
+            words = paragraph.split()
+            stemmed_words = []
+            for word in words:
+                tag = self.tagger.tag([word])
+                if tag[0][1] == "NPROP":
+                    continue
+                stemmed_words.append(stemmer.stem(word))
+            text = ''.join(w + ' ' for w in stemmed_words).strip()
+            stemmed_paragraphs.append(text)
+
+        return stemmed_paragraphs
+    
+    def transform(self, X, **fit_params):
+        stemmer = RSLPStemmer()
+
+        listParagraphs = X.tolist()
+        stemmed_paragraphs = []
+
+        for paragraph in listParagraphs:
+            words = paragraph.split()
+            stemmed_words = []
+            for word in words:
+                tag = self.tagger.tag([word])
+                if tag[0][1] == "NPROP":
+                    continue
+                stemmed_words.append(stemmer.stem(word))
+            text = ''.join(w + ' ' for w in stemmed_words).strip()
+            stemmed_paragraphs.append(text)
+
+        return stemmed_paragraphs
+
+class Tagger():
+    def __init__(self, filename):
+        f = open(filename, 'rb')
+        self.tagger = load(f)
+        f.close()
+
+    def fit(self, X, y=None, **fit_params):
+        return self
+
+    def transform(self, X, **fit_params):
+        pass
 
 
 ##########################################################################################################
