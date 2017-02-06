@@ -132,10 +132,11 @@ class Tagger():
 # O FIT_TRANSFORM DEVE RETORNAR UM DATAFRAME
 class NumRemover(BaseEstimator, TransformerMixin):
     def fit_transform(self, X, y=None, **fit_params):
-        filtered_texts = []
-        for paragraph in X:
-            filtered_texts.append(re.sub('\d', '', paragraph))
-        return filtered_texts
+        # X_copy = X.copy()
+        for index, paragraph in enumerate(X["texts"]):
+            filtered_text = (re.sub('\d', '', paragraph))
+            X.iloc[index,1] = filtered_text
+        return X
 
 
 ##########################################################################################################
