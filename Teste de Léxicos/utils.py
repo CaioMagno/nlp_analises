@@ -15,6 +15,8 @@ from sklearn.base import TransformerMixin, BaseEstimator
 from database_utils import DatabaseConnector, build_dataframe, normalize_text
 from sklearn.model_selection import StratifiedKFold
 
+from nltk.corpus import stopwords
+
 from sklearn.decomposition import PCA
 from sklearn.svm import SVC
 
@@ -138,6 +140,25 @@ class NumRemover(BaseEstimator, TransformerMixin):
             X.iloc[index,1] = filtered_text
         return X
 
+class WordRemover(BaseEstimator, TransformerMixin):
+    def __init__(self, words_to_remove):
+        self.words = words_to_remove
+
+    def fit_transform(self, X, y=None, **fit_params):
+        return self.remove_words(X, self.words)
+
+    def remove_words(self, data_frame, word_list):
+        for index, paragraph in enumerate(data_frame["texts"]):
+            tokens = paragraph.split()
+            tokens = [token for token in tokens if token not in self.words ]
+            data_frame.iloc[index, 1] = ' '.join(tokens)
+        return data_frame
+
+    def remove_by_regex(self, data_frame, regex):
+        for index, paragraph in enumerate(data_frame["texts"]):
+            paragraph = re.sub(regex, '',paragraph)
+            data_frame.iloc[index, 1] = paragraph
+        return data_frame
 
 ##########################################################################################################
 ######                   FUNÇÕES DE APRENDIZAGEM DE MÁQUINA                                       ########
@@ -154,7 +175,7 @@ def train_classifier(train, test, featurizer, classifier):
 def run_cross_validation(all_data, features, classifier, n_folds=10, shuffle=True):
     sKFold = StratifiedKFold(n_splits= n_folds, shuffle= shuffle, random_state= True)
 
-    classifier_models = []
+    # classifier_models = []
 
     print("Cross Validation:")
     accuracy_average = np.array([])
@@ -164,7 +185,7 @@ def run_cross_validation(all_data, features, classifier, n_folds=10, shuffle=Tru
         test_data = all_data.iloc[test]
 
         pipeline, accuracy = train_classifier(train_data, test_data, features, classifier)
-        classifier_models.append(pipeline)
+        # classifier_models.append(pipeline)
 
         accuracy_average = np.append(accuracy_average, accuracy)
         print("Fold ", index, " - Acuracia: ", accuracy)
@@ -173,8 +194,8 @@ def run_cross_validation(all_data, features, classifier, n_folds=10, shuffle=Tru
     print("Desvio padrão: ", accuracy_average.std())
 
     # Picking the best model
-    best_classifier = classifier_models[accuracy_average.argmax(axis=0)]
-    return best_classifier, sKFold
+    # best_classifier = classifier_models[accuracy_average.argmax(axis=0)]
+    # return best_classifier, sKFold
 
 def export_probabilities(classifier, all_data, sKFold):
     labels = all_data["labels"]
@@ -195,15 +216,4 @@ def export_probabilities(classifier, all_data, sKFold):
     print("Arquivo exportado")
 
 if __name__ == '__main__':
-    all_data = get_data_from_db()
-    all_data = all_data[(all_data["labels"] == "PO") | (all_data["labels"] == "NG")]
-    print('Textos carregados')
-    lexicon_CF = load_claudia_freitas_lexicon()
-    features = FeatureUnion([("bigram", CountVectorizer(ngram_range=(1, 2), binary=True)),
-                        ("lexicon_vector", CountVectorizer(vocabulary=lexicon_CF))])
-
-    bag_of_features = features.fit_transform(all_data["texts"].toarray())
-    pca = PCA(n_components=200)
-    bag_of_features_reduced = pca.fit_transform(bag_of_features.toarray())
-    run_cross_validation(bag_of_features_reduced, all_data['labels'], 10, True, features,
-                          SVC(C=316, kernel='sigmoid', coef0=0.5))
+    wr
