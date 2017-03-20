@@ -50,8 +50,11 @@ def load_claudia_freitas_lexicon():
     verbs_neg = extract_words('Recursos/Claudia Freitas/verbs_neg')
     adj_pos = extract_words('Recursos/Claudia Freitas/adj_pos')
     adj_neg = extract_words('Recursos/Claudia Freitas/adj_neg')
+    
+    # df = DataFrame(data = {"subs": [len(subs_pos), len(subs_neg)], "verbs": [len(verbs_pos), len(verbs_neg)], "adj": [len(adj_pos), len(adj_neg)]})
 
     return list(set(subs_pos + subs_neg + verbs_pos + verbs_neg + adj_pos + adj_neg))
+    # return df
 
 # Carregar léxico LIWC
 # OBS: PALAVRAS STEMMIZADAS!
