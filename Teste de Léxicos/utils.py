@@ -191,9 +191,9 @@ def run_cross_validation(all_data, features, classifier, n_folds=10, shuffle=Tru
         # classifier_models.append(pipeline)
 
         accuracy_average = np.append(accuracy_average, accuracy)
-        print("Fold ", index, " - Acuracia: ", accuracy)
+        #print("Fold ", index, " - Acuracia: ", accuracy)
 
-    print("\nAccuracia media: ", accuracy_average.mean())
+    print("Accuracia media: ", accuracy_average.mean())
     print("Desvio padrão: ", accuracy_average.std())
 
     # Picking the best model
