@@ -5,7 +5,9 @@ import re
 from pickle import load
 from pandas import DataFrame
 
+from sklearn.svm import SVC
 from sklearn.naive_bayes import MultinomialNB
+from sklearn.linear_model import LogisticRegressionCV
 from sklearn.feature_extraction.text import CountVectorizer
 
 from sklearn.pipeline import Pipeline, FeatureUnion
@@ -139,8 +141,9 @@ class NumRemover(BaseEstimator, TransformerMixin):
     def fit_transform(self, X, y=None, **fit_params):
         # X_copy = X.copy()
         for index, paragraph in enumerate(X["texts"]):
-            filtered_text = (re.sub('\d', '', paragraph))
-            X.iloc[index,1] = filtered_text
+            filtered_text = (re.sub('\d', 'NUM', paragraph))
+            # X.iloc[index,1] = filtered_text
+            X = X.set_value(index,"texts", filtered_text);
         return X
 
 class WordRemover(BaseEstimator, TransformerMixin):
@@ -199,6 +202,35 @@ def run_cross_validation(all_data, features, classifier, n_folds=10, shuffle=Tru
     # Picking the best model
     # best_classifier = classifier_models[accuracy_average.argmax(axis=0)]
     # return best_classifier, sKFold
+
+def run_cross_validation2(data, labels, classifier, n_folds=10, shuffle=True):
+    sKFold = StratifiedKFold(n_splits= n_folds, shuffle= shuffle, random_state= True)
+
+    # classifier_models = []
+
+    print("Cross Validation:")
+    accuracy_average = np.array([])
+    for index, (train, test) in enumerate(sKFold.split(data, labels)):
+        # Treinando um modelo Naive Bayes
+        train_data = data[train]
+        test_data = data[test]
+
+        pipeline, accuracy = train_classifier(train_data, test_data, features, classifier)
+        # classifier_models.append(pipeline)
+
+        accuracy_average = np.append(accuracy_average, accuracy)
+        #print("Fold ", index, " - Acuracia: ", accuracy)
+
+    print("Accuracia media: ", accuracy_average.mean())
+    print("Desvio padrão: ", accuracy_average.std())
+    
+def evaluate(data, vectorizer, n_folds):
+    print("Naive Bayes---------------------------------")
+    run_cross_validation(data, vectorizer, MultinomialNB(), n_folds = n_folds)
+    print("\nMaxEnt--------------------------------------")
+    run_cross_validation(data, vectorizer, LogisticRegressionCV(fit_intercept=False, penalty= 'l2', dual= False), n_folds = n_folds)
+    print("\nSVM-----------------------------------------")
+    run_cross_validation(data, vectorizer, SVC(C=316), n_folds = n_folds)
 
 def export_probabilities(classifier, all_data, sKFold):
     labels = all_data["labels"]
