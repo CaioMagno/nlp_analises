@@ -71,7 +71,14 @@ def get_LIWC_lexicon():
 ######                   FUNÇÕES DE PRE PROCESSAMENTO                                             ########
 ##########################################################################################################
 
-
+def clean_data(data):
+    num_remover = NumRemover()
+    word_remover = WordRemover(stopwords.words('portuguese'))
+    
+    data = num_remover.fit_transform(all_data)
+    data = word_remover.fit_transform(all_data)
+    return data
+    
 class Stemmer(BaseEstimator, TransformerMixin):
     def __init__(self):
         f = open('bigram_tagger.pkl','rb')
@@ -139,7 +146,7 @@ class NumRemover(BaseEstimator, TransformerMixin):
     def fit_transform(self, X, y=None, **fit_params):
         # X_copy = X.copy()
         for index, paragraph in enumerate(X["texts"]):
-            filtered_text = (re.sub('\d', '', paragraph))
+            filtered_text = (re.sub('\d', 'NUMBER', paragraph))
             X.iloc[index,1] = filtered_text
         return X
 
