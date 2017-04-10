@@ -140,10 +140,11 @@ class Tagger():
 class NumRemover(BaseEstimator, TransformerMixin):
     def fit_transform(self, X, y=None, **fit_params):
         # X_copy = X.copy()
-        for index, paragraph in enumerate(X["texts"]):
-            filtered_text = (re.sub('\d', 'NUM', paragraph))
-            # X.iloc[index,1] = filtered_text
-            X = X.set_value(index,"texts", filtered_text);
+        for line in X.iterrows():
+            index = line[0]
+            paragraph = line[1]["texts"]
+            filtered_text = (re.sub('\d', ' NUM ', paragraph))
+            X = X.set_value(index,"texts", filtered_text)
         return X
 
 class WordRemover(BaseEstimator, TransformerMixin):
@@ -154,16 +155,12 @@ class WordRemover(BaseEstimator, TransformerMixin):
         return self.remove_words(X, self.words)
 
     def remove_words(self, data_frame, word_list):
-        for index, paragraph in enumerate(data_frame["texts"]):
+        for line in data_frame.iterrows():
+            index = line[0]
+            paragraph = line[1]["texts"]
             tokens = paragraph.split()
             tokens = [token for token in tokens if token not in self.words ]
-            data_frame.iloc[index, 1] = ' '.join(tokens)
-        return data_frame
-
-    def remove_by_regex(self, data_frame, regex):
-        for index, paragraph in enumerate(data_frame["texts"]):
-            paragraph = re.sub(regex, '',paragraph)
-            data_frame.iloc[index, 1] = paragraph
+            data_frame.ix[index, "text"] = ' '.join(tokens)
         return data_frame
 
 ##########################################################################################################
