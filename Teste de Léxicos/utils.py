@@ -161,15 +161,6 @@ class WordRemover(BaseEstimator, TransformerMixin):
             tokens = paragraph.split()
             tokens = [token for token in tokens if token not in self.words ]
             data_frame.ix[index, "text"] = ' '.join(tokens)
-<<<<<<< HEAD
-=======
-        return data_frame
-
-    def remove_by_regex(self, data_frame, regex):
-        for index, paragraph in enumerate(data_frame["texts"]):
-            paragraph = re.sub(regex, '',paragraph)
-            data_frame.iloc[index, 1] = paragraph
->>>>>>> 0b51901ded3ab90e54eea25050a2581d2b679abf
         return data_frame
 
 ##########################################################################################################
@@ -182,6 +173,13 @@ def train_classifier(train, test, featurizer, classifier):
     predictions = pipeline.predict(test["texts"])
 
     accuracy = accuracy_score(test["labels"], predictions, normalize=True)
+    return pipeline, accuracy
+
+def train_classifier2(trainX, trainY, testX, testY, classifier):
+    classifier.fit(trainX, trainY)
+    predictions = classifier.predict(testX)
+
+    accuracy = accuracy_score(testY, predictions, normalize=True)
     return pipeline, accuracy
 
 def run_cross_validation(all_data, features, classifier, n_folds=10, shuffle=True):
@@ -209,23 +207,29 @@ def run_cross_validation(all_data, features, classifier, n_folds=10, shuffle=Tru
     # best_classifier = classifier_models[accuracy_average.argmax(axis=0)]
     # return best_classifier, sKFold
 
-def run_cross_validation2(data, labels, classifier, n_folds=10, shuffle=True):
+def run_cross_validation2(all_data, features, classifier, n_folds=10, shuffle=True):
     sKFold = StratifiedKFold(n_splits= n_folds, shuffle= shuffle, random_state= True)
-
-    # classifier_models = []
-
+    data = all_data.replace(to_replace="PO", value= 1)
+    data.replace(to_replace="NG", value= -1, inplace= True)
+    
+    
     print("Cross Validation:")
     accuracy_average = np.array([])
-    for index, (train, test) in enumerate(sKFold.split(data, labels)):
+    dataX = features.fit_transform(data["texts"])
+    dataY = data["labels"]
+    for index, (train, test) in enumerate(sKFold.split(dataX, dataY)):
         # Treinando um modelo Naive Bayes
-        train_data = data[train]
-        test_data = data[test]
+        trainX = dataX[train]
+        testX = dataX[test]
+        
+        trainY = dataY[train]
+        testY = dataY[test]
 
-        pipeline, accuracy = train_classifier(train_data, test_data, features, classifier)
+        pipeline, accuracy = train_classifier2(trainX, trainY, testX, testY, classifier)
         # classifier_models.append(pipeline)
 
         accuracy_average = np.append(accuracy_average, accuracy)
-        #print("Fold ", index, " - Acuracia: ", accuracy)
+        print("Fold ", index, " - Acuracia: ", accuracy)
 
     print("Accuracia media: ", accuracy_average.mean())
     print("Desvio padrão: ", accuracy_average.std())
