@@ -161,15 +161,6 @@ class WordRemover(BaseEstimator, TransformerMixin):
             tokens = paragraph.split()
             tokens = [token for token in tokens if token not in self.words ]
             data_frame.ix[index, "text"] = ' '.join(tokens)
-<<<<<<< HEAD
-=======
-        return data_frame
-
-    def remove_by_regex(self, data_frame, regex):
-        for index, paragraph in enumerate(data_frame["texts"]):
-            paragraph = re.sub(regex, '',paragraph)
-            data_frame.iloc[index, 1] = paragraph
->>>>>>> 0b51901ded3ab90e54eea25050a2581d2b679abf
         return data_frame
 
 ##########################################################################################################
