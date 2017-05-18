@@ -180,7 +180,7 @@ def train_classifier2(trainX, trainY, testX, testY, classifier):
     predictions = classifier.predict(testX)
 
     accuracy = accuracy_score(testY, predictions, normalize=True)
-    return pipeline, accuracy
+    return accuracy
 
 def run_cross_validation(all_data, features, classifier, n_folds=10, shuffle=True):
     sKFold = StratifiedKFold(n_splits= n_folds, shuffle= shuffle, random_state= True)
@@ -211,6 +211,7 @@ def run_cross_validation2(all_data, features, classifier, n_folds=10, shuffle=Tr
     sKFold = StratifiedKFold(n_splits= n_folds, shuffle= shuffle, random_state= True)
     data = all_data.replace(to_replace="PO", value= 1)
     data.replace(to_replace="NG", value= -1, inplace= True)
+    data.replace(to_replace="NE", value= 0, inplace= True)
     
     
     print("Cross Validation:")
@@ -225,7 +226,7 @@ def run_cross_validation2(all_data, features, classifier, n_folds=10, shuffle=Tr
         trainY = dataY[train]
         testY = dataY[test]
 
-        pipeline, accuracy = train_classifier2(trainX, trainY, testX, testY, classifier)
+        accuracy = train_classifier2(trainX, trainY, testX, testY, classifier)
         # classifier_models.append(pipeline)
 
         accuracy_average = np.append(accuracy_average, accuracy)
