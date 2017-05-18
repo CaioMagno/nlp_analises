@@ -87,10 +87,10 @@ class Stemmer(BaseEstimator, TransformerMixin):
     def fit_transform(self, X, y=None, **fit_params):
         stemmer = RSLPStemmer()
 
-        listParagraphs = X.tolist()
+        listParagraphs = X["texts"]
         stemmed_paragraphs = []
 
-        for paragraph in listParagraphs:
+        for index, paragraph in enumerate(listParagraphs):
             words = paragraph.split()
             stemmed_words = []
             for word in words:
@@ -99,9 +99,9 @@ class Stemmer(BaseEstimator, TransformerMixin):
                     continue
                 stemmed_words.append(stemmer.stem(word))
             text = ''.join(w + ' ' for w in stemmed_words).strip()
-            stemmed_paragraphs.append(text)
+            X = X.set_value(index,"texts", text)
 
-        return stemmed_paragraphs
+        return X
     
     def transform(self, X, **fit_params):
         stemmer = RSLPStemmer()
